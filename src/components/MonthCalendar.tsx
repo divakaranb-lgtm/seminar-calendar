@@ -85,9 +85,6 @@ export default function MonthCalendar({
           const inMonth = isSameMonth(day, month);
           const selected = selectedDate ? isSameDay(day, selectedDate) : false;
           const today = isToday(day);
-          const uniqueStreams = Array.from(
-            new Set(seminars.map((s) => s.stream || "Unspecified"))
-          );
 
           return (
             <button
@@ -114,13 +111,21 @@ export default function MonthCalendar({
               </span>
               {seminars.length > 0 && (
                 <div className="mt-1 flex flex-wrap items-center justify-center gap-0.5">
-                  {uniqueStreams.slice(0, 4).map((stream) => (
-                    <span
-                      key={stream}
-                      className="h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2"
-                      style={{ backgroundColor: colorForStream(stream).dot }}
-                    />
-                  ))}
+                  {seminars.slice(0, 6).map((seminar) => {
+                    const color = colorForStream(seminar.streams[0] ?? "Unspecified");
+                    const finalised = seminar.status === "finalised";
+                    return (
+                      <span
+                        key={seminar.id}
+                        className="h-1.5 w-1.5 rounded-full border sm:h-2 sm:w-2"
+                        style={
+                          finalised
+                            ? { backgroundColor: color.dot, borderColor: color.dot }
+                            : { backgroundColor: "transparent", borderColor: color.dot }
+                        }
+                      />
+                    );
+                  })}
                   {seminars.length > 1 && (
                     <span className="ml-0.5 hidden text-[10px] font-medium text-slate-400 sm:inline">
                       {seminars.length}

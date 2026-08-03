@@ -48,6 +48,11 @@ export default function SeminarCalendarApp() {
 
   const scheduled = useMemo(() => seminars.filter((s) => s.date !== null), [seminars]);
   const unscheduled = useMemo(() => seminars.filter((s) => s.date === null), [seminars]);
+  const finalisedCount = useMemo(
+    () => scheduled.filter((s) => s.status === "finalised").length,
+    [scheduled]
+  );
+  const tentativeCount = scheduled.length - finalisedCount;
 
   const seminarsByDay = useMemo(() => {
     const map = new Map<string, Seminar[]>();
@@ -63,7 +68,8 @@ export default function SeminarCalendarApp() {
   const streams = useMemo(() => {
     const set = new Set<string>();
     for (const seminar of seminars) {
-      set.add(seminar.stream || "Unspecified");
+      const list = seminar.streams.length > 0 ? seminar.streams : ["Unspecified"];
+      for (const stream of list) set.add(stream);
     }
     return Array.from(set).sort();
   }, [seminars]);
@@ -86,7 +92,8 @@ export default function SeminarCalendarApp() {
             <span className="text-red-600">{error}</span>
           ) : (
             <span>
-              {scheduled.length} scheduled · {unscheduled.length} pending a date
+              {finalisedCount} finalised · {tentativeCount} tentative ·{" "}
+              {unscheduled.length} pending a date
               {lastUpdated && <> · updated {format(lastUpdated, "h:mm a")}</>}
             </span>
           )}

@@ -53,7 +53,9 @@ export default function DayPanel({ date, seminars, onClose }: Props) {
             <p className="text-sm text-slate-500">No seminars on this date.</p>
           ) : (
             seminars.map((seminar) => {
-              const color = colorForStream(seminar.stream || "Unspecified");
+              const streams = seminar.streams.length > 0 ? seminar.streams : ["Unspecified"];
+              const color = colorForStream(streams[0]);
+              const finalised = seminar.status === "finalised";
               return (
                 <div
                   key={seminar.id}
@@ -65,12 +67,35 @@ export default function DayPanel({ date, seminars, onClose }: Props) {
                       {seminar.collegeName}
                     </h4>
                     <span
-                      className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
-                      style={{ color: color.text, backgroundColor: "white" }}
+                      className={[
+                        "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                        finalised
+                          ? "bg-green-100 text-green-700"
+                          : "bg-amber-100 text-amber-700",
+                      ].join(" ")}
                     >
-                      {seminar.stream || "Unspecified"}
+                      {finalised ? "Finalised" : "Tentative"}
                     </span>
                   </div>
+
+                  <div className="mb-2 flex flex-wrap gap-1">
+                    {streams.map((stream) => (
+                      <span
+                        key={stream}
+                        className="rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{ color: colorForStream(stream).text, backgroundColor: "white" }}
+                      >
+                        {stream}
+                      </span>
+                    ))}
+                  </div>
+
+                  {!finalised && seminar.statusRaw && (
+                    <p className="mb-2 text-xs text-amber-700">
+                      Estimated from: {seminar.statusRaw}
+                    </p>
+                  )}
+
                   <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-slate-600">
                     <Detail label="No. of students" value={seminar.noOfStudents} />
                     <Detail label="BDM" value={seminar.bdm} />

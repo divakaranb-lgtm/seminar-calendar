@@ -7,6 +7,16 @@ export default function StreamLegend({ streams }: { streams: string[] }) {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex items-center gap-4 text-xs text-slate-500">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full border border-slate-400 bg-slate-400" />
+          Finalised
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full border border-slate-400 bg-transparent" />
+          Tentative
+        </span>
+      </div>
       <h3 className="mb-3 text-sm font-semibold text-slate-900">Streams</h3>
       <div className="flex flex-wrap gap-2">
         {streams.map((stream) => {

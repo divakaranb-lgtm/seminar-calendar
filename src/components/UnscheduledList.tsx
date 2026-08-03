@@ -17,7 +17,8 @@ export default function UnscheduledList({ seminars }: { seminars: Seminar[] }) {
       </p>
       <ul className="divide-y divide-slate-100">
         {seminars.map((seminar) => {
-          const color = colorForStream(seminar.stream || "Unspecified");
+          const streamLabel = seminar.streams.length > 0 ? seminar.streams.join(", ") : "Unspecified";
+          const color = colorForStream(seminar.streams[0] ?? "Unspecified");
           return (
             <li key={seminar.id} className="flex items-center gap-3 py-2.5">
               <span
@@ -29,7 +30,7 @@ export default function UnscheduledList({ seminars }: { seminars: Seminar[] }) {
                   {seminar.collegeName}
                 </p>
                 <p className="truncate text-xs text-slate-500">
-                  {seminar.stream || "Unspecified"} · {seminar.dateRaw || "no date given"}
+                  {streamLabel} · {seminar.statusRaw || seminar.dateRaw || "no date given"}
                 </p>
               </div>
             </li>
