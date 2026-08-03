@@ -10,11 +10,11 @@ export default function StreamLegend({ streams }: { streams: string[] }) {
       <div className="mb-3 flex items-center gap-4 text-xs text-slate-500">
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full border border-slate-400 bg-slate-400" />
-          Finalised
+          Confirmed date
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full border border-slate-400 bg-transparent" />
-          Tentative
+          Estimated date
         </span>
       </div>
       <h3 className="mb-3 text-sm font-semibold text-slate-900">Streams</h3>

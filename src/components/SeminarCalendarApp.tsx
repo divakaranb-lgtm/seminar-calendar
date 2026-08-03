@@ -48,11 +48,11 @@ export default function SeminarCalendarApp() {
 
   const scheduled = useMemo(() => seminars.filter((s) => s.date !== null), [seminars]);
   const unscheduled = useMemo(() => seminars.filter((s) => s.date === null), [seminars]);
-  const finalisedCount = useMemo(
-    () => scheduled.filter((s) => s.status === "finalised").length,
+  const explicitCount = useMemo(
+    () => scheduled.filter((s) => s.dateSource === "explicit").length,
     [scheduled]
   );
-  const tentativeCount = scheduled.length - finalisedCount;
+  const estimatedCount = scheduled.length - explicitCount;
 
   const seminarsByDay = useMemo(() => {
     const map = new Map<string, Seminar[]>();
@@ -92,7 +92,7 @@ export default function SeminarCalendarApp() {
             <span className="text-red-600">{error}</span>
           ) : (
             <span>
-              {finalisedCount} finalised · {tentativeCount} tentative ·{" "}
+              {explicitCount} confirmed date · {estimatedCount} estimated date ·{" "}
               {unscheduled.length} pending a date
               {lastUpdated && <> · updated {format(lastUpdated, "h:mm a")}</>}
             </span>

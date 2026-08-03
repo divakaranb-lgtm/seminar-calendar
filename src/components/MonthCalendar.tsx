@@ -113,13 +113,13 @@ export default function MonthCalendar({
                 <div className="mt-1 flex flex-wrap items-center justify-center gap-0.5">
                   {seminars.slice(0, 6).map((seminar) => {
                     const color = colorForStream(seminar.streams[0] ?? "Unspecified");
-                    const finalised = seminar.status === "finalised";
+                    const explicit = seminar.dateSource === "explicit";
                     return (
                       <span
                         key={seminar.id}
                         className="h-1.5 w-1.5 rounded-full border sm:h-2 sm:w-2"
                         style={
-                          finalised
+                          explicit
                             ? { backgroundColor: color.dot, borderColor: color.dot }
                             : { backgroundColor: "transparent", borderColor: color.dot }
                         }

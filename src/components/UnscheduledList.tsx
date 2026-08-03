@@ -12,8 +12,8 @@ export default function UnscheduledList({ seminars }: { seminars: Seminar[] }) {
         Not yet on the calendar
       </h3>
       <p className="mb-3 text-xs text-slate-500">
-        These seminars don&apos;t have a confirmed date yet, so they can&apos;t
-        be placed on a specific day.
+        These seminars don&apos;t currently have a specific date, so they
+        can&apos;t be placed on a day.
       </p>
       <ul className="divide-y divide-slate-100">
         {seminars.map((seminar) => {

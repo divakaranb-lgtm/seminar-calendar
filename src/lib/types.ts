@@ -1,12 +1,12 @@
-export type SeminarStatus = "finalised" | "tentative" | "unscheduled";
+export type DateSource = "explicit" | "estimated";
 
 export type Seminar = {
   id: string;
   collegeName: string;
-  status: SeminarStatus;
   statusRaw: string;
   dateRaw: string;
   date: Date | null;
+  dateSource: DateSource | null;
   streams: string[];
   noOfStudents: string;
   bdm: string;

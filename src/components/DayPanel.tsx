@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { format } from "date-fns";
 import { colorForStream } from "@/lib/colors";
+import { statusTint } from "@/lib/statusTint";
 import type { Seminar } from "@/lib/types";
 
 type Props = {
@@ -55,7 +56,7 @@ export default function DayPanel({ date, seminars, onClose }: Props) {
             seminars.map((seminar) => {
               const streams = seminar.streams.length > 0 ? seminar.streams : ["Unspecified"];
               const color = colorForStream(streams[0]);
-              const finalised = seminar.status === "finalised";
+              const estimated = seminar.dateSource === "estimated";
               return (
                 <div
                   key={seminar.id}
@@ -66,16 +67,16 @@ export default function DayPanel({ date, seminars, onClose }: Props) {
                     <h4 className="font-semibold text-slate-900">
                       {seminar.collegeName}
                     </h4>
-                    <span
-                      className={[
-                        "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
-                        finalised
-                          ? "bg-green-100 text-green-700"
-                          : "bg-amber-100 text-amber-700",
-                      ].join(" ")}
-                    >
-                      {finalised ? "Finalised" : "Tentative"}
-                    </span>
+                    {seminar.statusRaw && (
+                      <span
+                        className={[
+                          "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                          statusTint(seminar.statusRaw),
+                        ].join(" ")}
+                      >
+                        {seminar.statusRaw}
+                      </span>
+                    )}
                   </div>
 
                   <div className="mb-2 flex flex-wrap gap-1">
@@ -90,9 +91,9 @@ export default function DayPanel({ date, seminars, onClose }: Props) {
                     ))}
                   </div>
 
-                  {!finalised && seminar.statusRaw && (
-                    <p className="mb-2 text-xs text-amber-700">
-                      Estimated from: {seminar.statusRaw}
+                  {estimated && (
+                    <p className="mb-2 text-xs text-slate-500">
+                      Date estimated from status: {seminar.statusRaw}
                     </p>
                   )}
 

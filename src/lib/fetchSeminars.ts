@@ -1,12 +1,10 @@
 import Papa from "papaparse";
 import { parseSeminarDate } from "./parseDate";
 import { parseTentativeDate } from "./parseTentativeDate";
-import type { Seminar, SeminarStatus } from "./types";
+import type { DateSource, Seminar } from "./types";
 
 export const CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQenadlrDcSBEWPRLoAyhquOUx9G2a-voTICgLX_xX7NL158Vd_YnxOGiB5ATPZdQOdts3_s4Q5lGp4/pub?gid=0&single=true&output=csv";
-
-const FINALISED_VALUES = new Set(["finalised", "finalized", "confirmed", "final"]);
 
 function findKey(row: Record<string, string>, needles: string[], exclude: Set<string> = new Set()): string {
   const keys = Object.keys(row).filter((k) => !exclude.has(k));
@@ -17,27 +15,25 @@ function findKey(row: Record<string, string>, needles: string[], exclude: Set<st
   return "";
 }
 
-function resolveStatusAndDate(
+/**
+ * The status column's text is arbitrary (Finalised, Postponed, Cancelled,
+ * Done, "August 1st week", "yet to confirm", ...) and shown verbatim in the
+ * UI, so date placement doesn't hardcode a list of known status words: a
+ * real date in the "Date of Seminar Finalised" column always wins, and
+ * otherwise the status text is checked for a week reference ("August 1st
+ * week") to estimate a placeholder date.
+ */
+function resolveDate(
   statusRaw: string,
   dateRaw: string
-): { status: SeminarStatus; date: Date | null } {
-  const statusKey = statusRaw.trim().toLowerCase();
+): { date: Date | null; dateSource: DateSource | null } {
+  const explicitDate = parseSeminarDate(dateRaw);
+  if (explicitDate) return { date: explicitDate, dateSource: "explicit" };
 
-  if (FINALISED_VALUES.has(statusKey)) {
-    const date = parseSeminarDate(dateRaw);
-    return { status: date ? "finalised" : "unscheduled", date };
-  }
+  const estimatedDate = parseTentativeDate(statusRaw);
+  if (estimatedDate) return { date: estimatedDate, dateSource: "estimated" };
 
-  if (statusKey) {
-    const tentativeDate = parseTentativeDate(statusRaw);
-    return tentativeDate
-      ? { status: "tentative", date: tentativeDate }
-      : { status: "unscheduled", date: null };
-  }
-
-  // No status text at all: fall back to whatever is in the date column.
-  const date = parseSeminarDate(dateRaw);
-  return { status: date ? "finalised" : "unscheduled", date };
+  return { date: null, dateSource: null };
 }
 
 function normalizeRow(row: Record<string, string>, index: number): Seminar | null {
@@ -55,7 +51,7 @@ function normalizeRow(row: Record<string, string>, index: number): Seminar | nul
 
   const statusRaw = (row[statusKey] || "").trim();
   const dateRaw = (row[dateKey] || "").trim();
-  const { status, date } = resolveStatusAndDate(statusRaw, dateRaw);
+  const { date, dateSource } = resolveDate(statusRaw, dateRaw);
 
   const streams = (row[streamKey] || "")
     .split(",")
@@ -65,10 +61,10 @@ function normalizeRow(row: Record<string, string>, index: number): Seminar | nul
   return {
     id: `${index}-${collegeName}`,
     collegeName,
-    status,
     statusRaw,
     dateRaw,
     date,
+    dateSource,
     streams,
     noOfStudents: (row[studentsKey] || "").trim(),
     bdm: (row[bdmKey] || "").trim(),
