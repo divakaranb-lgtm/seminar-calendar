@@ -114,6 +114,28 @@ export default function MonthCalendar({
                   {seminars.slice(0, 6).map((seminar) => {
                     const color = colorForStream(seminar.streams[0] ?? "Unspecified");
                     const explicit = seminar.dateSource === "explicit";
+                    const postponed = seminar.statusRaw.toLowerCase().includes("postpon");
+
+                    if (postponed) {
+                      return (
+                        <svg
+                          key={seminar.id}
+                          viewBox="0 0 8 8"
+                          className="h-1.5 w-1.5 sm:h-2 sm:w-2"
+                        >
+                          <circle cx="4" cy="4" r="3.25" fill={color.dot} />
+                          <line
+                            x1="1.2"
+                            y1="6.8"
+                            x2="6.8"
+                            y2="1.2"
+                            stroke="white"
+                            strokeWidth="1"
+                          />
+                        </svg>
+                      );
+                    }
+
                     return (
                       <span
                         key={seminar.id}
