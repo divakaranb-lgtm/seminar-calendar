@@ -3,13 +3,14 @@ import type { Seminar } from "./types";
 export type FunnelBucket = "done" | "finalised" | "notConfirmed" | "postponed";
 
 const FINALISED_WORDS = new Set(["finalised", "finalized", "confirmed", "final"]);
-const NOT_CONFIRMED_WORDS = new Set(["yet to confirm", "next month"]);
 
 /**
  * Buckets a seminar for the dashboard summary. Priority matters: a
  * postponed seminar keeps its original date (dateSource can still be
  * "explicit"), so it must be checked before the finalised/done checks or
- * it would double count there.
+ * it would double count there. "Not Confirmed" is deliberately narrow -
+ * only the literal "yet to confirm" status, not "Next Month" or any other
+ * status that merely resolves to an estimated date.
  */
 export function categorizeSeminar(seminar: Seminar): FunnelBucket | null {
   const status = seminar.statusRaw.trim().toLowerCase();
@@ -17,7 +18,7 @@ export function categorizeSeminar(seminar: Seminar): FunnelBucket | null {
   if (status.includes("postpon")) return "postponed";
   if (status === "done") return "done";
   if (FINALISED_WORDS.has(status)) return "finalised";
-  if (NOT_CONFIRMED_WORDS.has(status) || seminar.dateSource === "estimated") return "notConfirmed";
+  if (status === "yet to confirm") return "notConfirmed";
 
   return null;
 }
