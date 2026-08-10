@@ -97,11 +97,16 @@ export default function DayPanel({ date, seminars, onClose }: Props) {
                     </p>
                   )}
 
-                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-slate-600">
-                    <Detail label="No. of students" value={seminar.noOfStudents} />
+                  <dl className="mb-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-slate-600">
+                    <Detail label="Students addressed" value={seminar.noOfStudents} />
+                    <Detail label="Prospects" value={seminar.prospects} />
+                    <Detail label="Walk-ins" value={seminar.walkIns} />
+                    <Detail label="Lock-ins" value={seminar.lockIns} />
+                  </dl>
+
+                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-black/5 pt-2.5 text-sm text-slate-600">
                     <Detail label="BDM" value={seminar.bdm} />
                     <Detail label="Speaker" value={seminar.speaker} />
-                    <Detail label="Closest branch" value={seminar.closestBranch} />
                   </dl>
                 </div>
               );

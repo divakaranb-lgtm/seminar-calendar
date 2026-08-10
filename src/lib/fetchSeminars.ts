@@ -17,11 +17,12 @@ function findKey(row: Record<string, string>, needles: string[], exclude: Set<st
 
 /**
  * The status column's text is arbitrary (Finalised, Postponed, Cancelled,
- * Done, "August 1st week", "yet to confirm", ...) and shown verbatim in the
- * UI, so date placement doesn't hardcode a list of known status words: a
- * real date in the "Date of Seminar Finalised" column always wins, and
- * otherwise the status text is checked for a week reference ("August 1st
- * week") to estimate a placeholder date.
+ * Done, "Next Month", "yet to confirm", ...) and shown verbatim in the UI,
+ * so date placement doesn't hardcode a list of known status words: a real
+ * date in the date column always wins. Otherwise, free-form week/day text
+ * like "August 1st week" or "2nd week of Aug" is checked for — normally
+ * it lives in the date column itself, but the status column is checked
+ * too as a fallback since the sheet has put it there before.
  */
 function resolveDate(
   statusRaw: string,
@@ -30,7 +31,7 @@ function resolveDate(
   const explicitDate = parseSeminarDate(dateRaw);
   if (explicitDate) return { date: explicitDate, dateSource: "explicit" };
 
-  const estimatedDate = parseTentativeDate(statusRaw);
+  const estimatedDate = parseTentativeDate(dateRaw) ?? parseTentativeDate(statusRaw);
   if (estimatedDate) return { date: estimatedDate, dateSource: "estimated" };
 
   return { date: null, dateSource: null };
@@ -42,6 +43,9 @@ function normalizeRow(row: Record<string, string>, index: number): Seminar | nul
   const dateKey = findKey(row, ["date"], new Set([statusKey]));
   const streamKey = findKey(row, ["stream"]);
   const studentsKey = findKey(row, ["student"]);
+  const prospectsKey = findKey(row, ["prospect"]);
+  const walkInsKey = findKey(row, ["walk"]);
+  const lockInsKey = findKey(row, ["lock"]);
   const bdmKey = findKey(row, ["bdm"]);
   const speakerKey = findKey(row, ["speaker"]);
   const branchKey = findKey(row, ["branch"]);
@@ -67,6 +71,9 @@ function normalizeRow(row: Record<string, string>, index: number): Seminar | nul
     dateSource,
     streams,
     noOfStudents: (row[studentsKey] || "").trim(),
+    prospects: (row[prospectsKey] || "").trim(),
+    walkIns: (row[walkInsKey] || "").trim(),
+    lockIns: (row[lockInsKey] || "").trim(),
     bdm: (row[bdmKey] || "").trim(),
     speaker: (row[speakerKey] || "").trim(),
     closestBranch: (row[branchKey] || "").trim(),

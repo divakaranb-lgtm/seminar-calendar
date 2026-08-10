@@ -8,6 +8,7 @@ import MonthCalendar from "./MonthCalendar";
 import DayPanel from "./DayPanel";
 import UnscheduledList from "./UnscheduledList";
 import StreamLegend from "./StreamLegend";
+import SummaryDashboard from "./SummaryDashboard";
 
 export default function SeminarCalendarApp() {
   const [seminars, setSeminars] = useState<Seminar[]>([]);
@@ -113,6 +114,8 @@ export default function SeminarCalendarApp() {
           Couldn&apos;t load seminar data. {error}
         </div>
       )}
+
+      <SummaryDashboard seminars={seminars} />
 
       <div className="space-y-5">
         <MonthCalendar
