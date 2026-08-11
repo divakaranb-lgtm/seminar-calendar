@@ -3,12 +3,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { fetchSeminars } from "@/lib/fetchSeminars";
+import { fetchCallingRecords } from "@/lib/fetchCallingSheet";
+import { enrichWithCallingStats } from "@/lib/matchCalling";
 import type { Seminar } from "@/lib/types";
 import MonthCalendar from "./MonthCalendar";
 import DayPanel from "./DayPanel";
 import UnscheduledList from "./UnscheduledList";
 import StreamLegend from "./StreamLegend";
 import SummaryDashboard from "./SummaryDashboard";
+
+/**
+ * The calling sheet is a secondary, non-critical data source (Prospects /
+ * Future Intake only) - if it fails to load, seminars still render with
+ * those stats simply unavailable ("—") instead of failing the whole page.
+ */
+async function loadData(): Promise<Seminar[]> {
+  const seminars = await fetchSeminars();
+  try {
+    const callingRecords = await fetchCallingRecords();
+    return enrichWithCallingStats(seminars, callingRecords);
+  } catch (err) {
+    console.error("Failed to fetch calling sheet; Prospects/Future Intake will be unavailable.", err);
+    return seminars;
+  }
+}
 
 export default function SeminarCalendarApp() {
   const [seminars, setSeminars] = useState<Seminar[]>([]);
@@ -21,7 +39,7 @@ export default function SeminarCalendarApp() {
   const load = () => {
     setLoading(true);
     setError(null);
-    fetchSeminars()
+    loadData()
       .then((data) => {
         setSeminars(data);
         setLastUpdated(new Date());
@@ -36,7 +54,7 @@ export default function SeminarCalendarApp() {
     // Initial state is already loading=true/error=null, so just kick off the
     // fetch here instead of routing through load() (which sets those
     // synchronously and would cause a cascading render on mount).
-    fetchSeminars()
+    loadData()
       .then((data) => {
         setSeminars(data);
         setLastUpdated(new Date());

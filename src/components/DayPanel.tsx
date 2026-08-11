@@ -99,7 +99,14 @@ export default function DayPanel({ date, seminars, onClose }: Props) {
 
                   <dl className="mb-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm text-slate-600">
                     <Detail label="Students addressed" value={seminar.noOfStudents} />
-                    <Detail label="Prospects" value={seminar.prospects} />
+                    <Detail
+                      label="Prospects"
+                      value={seminar.callingMatchCount > 0 ? String(seminar.callingProspects) : ""}
+                    />
+                    <Detail
+                      label="Future Intake"
+                      value={seminar.callingMatchCount > 0 ? String(seminar.callingFutureIntake) : ""}
+                    />
                     <Detail label="Walk-ins" value={seminar.walkIns} />
                     <Detail label="Lock-ins" value={seminar.lockIns} />
                   </dl>

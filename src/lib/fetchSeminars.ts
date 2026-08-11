@@ -1,19 +1,11 @@
 import Papa from "papaparse";
+import { findKey } from "./csvUtils";
 import { parseSeminarDate } from "./parseDate";
 import { parseTentativeDate } from "./parseTentativeDate";
 import type { DateSource, Seminar } from "./types";
 
 export const CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQenadlrDcSBEWPRLoAyhquOUx9G2a-voTICgLX_xX7NL158Vd_YnxOGiB5ATPZdQOdts3_s4Q5lGp4/pub?gid=0&single=true&output=csv";
-
-function findKey(row: Record<string, string>, needles: string[], exclude: Set<string> = new Set()): string {
-  const keys = Object.keys(row).filter((k) => !exclude.has(k));
-  for (const needle of needles) {
-    const found = keys.find((k) => k.toLowerCase().includes(needle));
-    if (found) return found;
-  }
-  return "";
-}
 
 /**
  * The status column's text is arbitrary (Finalised, Postponed, Cancelled,
@@ -43,7 +35,6 @@ function normalizeRow(row: Record<string, string>, index: number): Seminar | nul
   const dateKey = findKey(row, ["date"], new Set([statusKey]));
   const streamKey = findKey(row, ["stream"]);
   const studentsKey = findKey(row, ["student"]);
-  const prospectsKey = findKey(row, ["prospect"]);
   const walkInsKey = findKey(row, ["walk"]);
   const lockInsKey = findKey(row, ["lock"]);
   const bdmKey = findKey(row, ["bdm"]);
@@ -71,12 +62,15 @@ function normalizeRow(row: Record<string, string>, index: number): Seminar | nul
     dateSource,
     streams,
     noOfStudents: (row[studentsKey] || "").trim(),
-    prospects: (row[prospectsKey] || "").trim(),
     walkIns: (row[walkInsKey] || "").trim(),
     lockIns: (row[lockInsKey] || "").trim(),
     bdm: (row[bdmKey] || "").trim(),
     speaker: (row[speakerKey] || "").trim(),
     closestBranch: (row[branchKey] || "").trim(),
+    // Filled in later by enrichWithCallingStats() once the calling sheet loads.
+    callingMatchCount: 0,
+    callingProspects: 0,
+    callingFutureIntake: 0,
   };
 }
 

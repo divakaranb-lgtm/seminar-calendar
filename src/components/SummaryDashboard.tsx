@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { categorizeSeminar, sumField } from "@/lib/funnel";
 import type { Seminar } from "@/lib/types";
 
-type CardKey = "done" | "finalised" | "notConfirmed";
+type CardKey = "done" | "finalised" | "notConfirmed" | "postponed";
 
 type CardConfig = {
   key: CardKey;
@@ -14,6 +14,7 @@ type CardConfig = {
   studentsLabel: string;
   accent: string; // tailwind classes for the icon dot + count pill
   ring: string; // tailwind border color
+  muted?: boolean;
 };
 
 const CARDS: CardConfig[] = [
@@ -43,6 +44,16 @@ const CARDS: CardConfig[] = [
   },
 ];
 
+const POSTPONED_CARD: CardConfig = {
+  key: "postponed",
+  title: "Postponed",
+  subtitle: "Sessions on hold",
+  studentsLabel: "To be addressed",
+  accent: "bg-slate-400 text-slate-600 bg-slate-100",
+  ring: "border-slate-200",
+  muted: true,
+};
+
 function formatStat(stat: { total: number; hasData: boolean }): string {
   return stat.hasData ? stat.total.toLocaleString() : "—";
 }
@@ -52,10 +63,63 @@ function dateLabel(seminar: Seminar): string {
   return seminar.dateRaw || seminar.statusRaw || "—";
 }
 
+/** Seminars with no usable date sort last; otherwise earliest first. */
+function sortByDateAsc(seminars: Seminar[]): Seminar[] {
+  return [...seminars].sort((a, b) => {
+    if (a.date && b.date) return a.date.getTime() - b.date.getTime();
+    if (a.date) return -1;
+    if (b.date) return 1;
+    return 0;
+  });
+}
+
+function QuickViewTable({ group, studentsLabel }: { group: Seminar[]; studentsLabel: string }) {
+  const sorted = sortByDateAsc(group);
+  return (
+    <div className="mt-4 max-h-64 overflow-y-auto border-t border-slate-100 pt-3">
+      <table className="w-full text-left text-xs">
+        <thead>
+          <tr className="text-slate-400">
+            <th className="pb-1.5 font-medium">College</th>
+            <th className="pb-1.5 font-medium">Date</th>
+            <th className="pb-1.5 pl-2 text-right font-medium">{studentsLabel}</th>
+            <th className="pb-1.5 pl-2 text-right font-medium">Prospects</th>
+            <th className="pb-1.5 pl-2 text-right font-medium">Future Intake</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-50">
+          {sorted.map((seminar) => {
+            const hasCallingData = seminar.callingMatchCount > 0;
+            return (
+              <tr key={seminar.id}>
+                <td className="max-w-[8rem] truncate py-1.5 pr-2 font-medium text-slate-700">
+                  {seminar.collegeName}
+                </td>
+                <td className="whitespace-nowrap py-1.5 pr-2 text-slate-500">
+                  {dateLabel(seminar)}
+                </td>
+                <td className="py-1.5 pl-2 text-right text-slate-700">
+                  {seminar.noOfStudents || "—"}
+                </td>
+                <td className="py-1.5 pl-2 text-right text-slate-700">
+                  {hasCallingData ? seminar.callingProspects : "—"}
+                </td>
+                <td className="py-1.5 pl-2 text-right text-slate-700">
+                  {hasCallingData ? seminar.callingFutureIntake : "—"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) {
   const [expanded, setExpanded] = useState<Set<CardKey>>(new Set());
 
-  const buckets: Record<string, Seminar[]> = {
+  const buckets: Record<CardKey, Seminar[]> = {
     done: [],
     finalised: [],
     notConfirmed: [],
@@ -67,10 +131,6 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
     if (bucket) buckets[bucket].push(seminar);
   }
 
-  const postponed = buckets.postponed;
-  const postponedStudents = sumField(postponed, (s) => s.noOfStudents);
-  const postponedProspects = sumField(postponed, (s) => s.prospects);
-
   const toggle = (key: CardKey) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -80,13 +140,28 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
     });
   };
 
+  const postponed = buckets.postponed;
+  const postponedStudents = sumField(postponed, (s) => s.noOfStudents);
+  const postponedProspects = sumField(postponed, (s) =>
+    s.callingMatchCount > 0 ? String(s.callingProspects) : ""
+  );
+  const postponedFutureIntake = sumField(postponed, (s) =>
+    s.callingMatchCount > 0 ? String(s.callingFutureIntake) : ""
+  );
+  const postponedOpen = expanded.has("postponed");
+
   return (
     <div className="mb-5">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {CARDS.map((card) => {
           const group = buckets[card.key];
           const students = sumField(group, (s) => s.noOfStudents);
-          const prospects = sumField(group, (s) => s.prospects);
+          const prospects = sumField(group, (s) =>
+            s.callingMatchCount > 0 ? String(s.callingProspects) : ""
+          );
+          const futureIntake = sumField(group, (s) =>
+            s.callingMatchCount > 0 ? String(s.callingFutureIntake) : ""
+          );
           const [dotClass, textClass, pillBgClass] = card.accent.split(" ");
           const isOpen = expanded.has(card.key);
 
@@ -123,7 +198,7 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
                 </div>
                 <p className="mb-4 text-xs text-slate-400">{card.subtitle}</p>
 
-                <div className="flex items-end gap-6">
+                <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
                   <div>
                     <p className="text-2xl font-bold text-slate-900 sm:text-3xl">
                       {formatStat(students)}
@@ -136,42 +211,17 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
                     </p>
                     <p className="text-xs text-slate-500">Prospects</p>
                   </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900 sm:text-3xl">
+                      {formatStat(futureIntake)}
+                    </p>
+                    <p className="text-xs text-slate-500">Future Intake</p>
+                  </div>
                 </div>
               </button>
 
               {isOpen && group.length > 0 && (
-                <div className="mt-4 max-h-64 overflow-y-auto border-t border-slate-100 pt-3">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="text-slate-400">
-                        <th className="pb-1.5 font-medium">College</th>
-                        <th className="pb-1.5 font-medium">Date</th>
-                        <th className="pb-1.5 pl-2 text-right font-medium">
-                          {card.studentsLabel}
-                        </th>
-                        <th className="pb-1.5 pl-2 text-right font-medium">Prospects</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {group.map((seminar) => (
-                        <tr key={seminar.id}>
-                          <td className="max-w-[9rem] truncate py-1.5 pr-2 font-medium text-slate-700">
-                            {seminar.collegeName}
-                          </td>
-                          <td className="whitespace-nowrap py-1.5 pr-2 text-slate-500">
-                            {dateLabel(seminar)}
-                          </td>
-                          <td className="py-1.5 pl-2 text-right text-slate-700">
-                            {seminar.noOfStudents || "—"}
-                          </td>
-                          <td className="py-1.5 pl-2 text-right text-slate-700">
-                            {seminar.prospects || "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <QuickViewTable group={group} studentsLabel={card.studentsLabel} />
               )}
             </div>
           );
@@ -179,13 +229,32 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
       </div>
 
       {postponed.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 text-xs text-slate-500">
-          <span className="font-medium text-slate-600">Postponed</span>
-          <span>
-            {postponed.length} {postponed.length === 1 ? "session" : "sessions"}
-          </span>
-          <span>{formatStat(postponedStudents)} students addressed</span>
-          <span>{formatStat(postponedProspects)} prospects</span>
+        <div className={`mt-3 rounded-xl border ${POSTPONED_CARD.ring} bg-slate-50 px-4 py-2.5`}>
+          <button
+            type="button"
+            onClick={() => toggle("postponed")}
+            className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 text-left text-xs text-slate-500"
+          >
+            <span className="flex items-center gap-1.5 font-medium text-slate-600">
+              <span className="h-2 w-2 rounded-full bg-slate-400" />
+              Postponed
+            </span>
+            <span>
+              {postponed.length} {postponed.length === 1 ? "session" : "sessions"}
+            </span>
+            <span>{formatStat(postponedStudents)} to be addressed</span>
+            <span>{formatStat(postponedProspects)} prospects</span>
+            <span>{formatStat(postponedFutureIntake)} future intake</span>
+            <span
+              className={`ml-auto text-slate-400 transition-transform ${postponedOpen ? "rotate-180" : ""}`}
+            >
+              ▾
+            </span>
+          </button>
+
+          {postponedOpen && (
+            <QuickViewTable group={postponed} studentsLabel={POSTPONED_CARD.studentsLabel} />
+          )}
         </div>
       )}
     </div>
