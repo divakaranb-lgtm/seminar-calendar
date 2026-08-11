@@ -11,6 +11,7 @@ import DayPanel from "./DayPanel";
 import UnscheduledList from "./UnscheduledList";
 import StreamLegend from "./StreamLegend";
 import SummaryDashboard from "./SummaryDashboard";
+import BdmBreakdown from "./BdmBreakdown";
 
 /**
  * The calling sheet is a secondary, non-critical data source (Prospects /
@@ -102,7 +103,7 @@ export default function SeminarCalendarApp() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:py-10">
       <header className="mb-6 flex flex-col gap-1 sm:mb-8">
         <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-          Seminar Calendar
+          Seminar Pipeline Dashboard
         </h1>
         <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
           {loading ? (
@@ -148,6 +149,8 @@ export default function SeminarCalendarApp() {
 
         <UnscheduledList seminars={unscheduled} />
       </div>
+
+      <BdmBreakdown seminars={seminars} />
 
       {selectedDate && (
         <DayPanel

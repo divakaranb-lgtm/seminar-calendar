@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { categorizeSeminar, sumField } from "@/lib/funnel";
+import { categorizeSeminar, formatStat, sumCallingField, sumField } from "@/lib/funnel";
 import type { Seminar } from "@/lib/types";
 
 type CardKey = "done" | "finalised" | "notConfirmed" | "postponed";
@@ -53,10 +53,6 @@ const POSTPONED_CARD: CardConfig = {
   ring: "border-slate-200",
   muted: true,
 };
-
-function formatStat(stat: { total: number; hasData: boolean }): string {
-  return stat.hasData ? stat.total.toLocaleString() : "—";
-}
 
 function dateLabel(seminar: Seminar): string {
   if (seminar.date) return format(seminar.date, "MMM d, yyyy");
@@ -142,12 +138,8 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
 
   const postponed = buckets.postponed;
   const postponedStudents = sumField(postponed, (s) => s.noOfStudents);
-  const postponedProspects = sumField(postponed, (s) =>
-    s.callingMatchCount > 0 ? String(s.callingProspects) : ""
-  );
-  const postponedFutureIntake = sumField(postponed, (s) =>
-    s.callingMatchCount > 0 ? String(s.callingFutureIntake) : ""
-  );
+  const postponedProspects = sumCallingField(postponed, (s) => s.callingProspects);
+  const postponedFutureIntake = sumCallingField(postponed, (s) => s.callingFutureIntake);
   const postponedOpen = expanded.has("postponed");
 
   return (
@@ -156,12 +148,8 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
         {CARDS.map((card) => {
           const group = buckets[card.key];
           const students = sumField(group, (s) => s.noOfStudents);
-          const prospects = sumField(group, (s) =>
-            s.callingMatchCount > 0 ? String(s.callingProspects) : ""
-          );
-          const futureIntake = sumField(group, (s) =>
-            s.callingMatchCount > 0 ? String(s.callingFutureIntake) : ""
-          );
+          const prospects = sumCallingField(group, (s) => s.callingProspects);
+          const futureIntake = sumCallingField(group, (s) => s.callingFutureIntake);
           const [dotClass, textClass, pillBgClass] = card.accent.split(" ");
           const isOpen = expanded.has(card.key);
 

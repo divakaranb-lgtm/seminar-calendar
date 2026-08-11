@@ -42,3 +42,12 @@ export function sumField(seminars: Seminar[], getValue: (s: Seminar) => string) 
   }
   return { total, hasData };
 }
+
+/** Sums a seminar's calling-sheet stat, only counting seminars that actually have calling data. */
+export function sumCallingField(seminars: Seminar[], getValue: (s: Seminar) => number) {
+  return sumField(seminars, (s) => (s.callingMatchCount > 0 ? String(getValue(s)) : ""));
+}
+
+export function formatStat(stat: { total: number; hasData: boolean }): string {
+  return stat.hasData ? stat.total.toLocaleString() : "—";
+}

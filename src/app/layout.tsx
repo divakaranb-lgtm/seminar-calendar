@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Seminar Calendar",
-  description: "Monthly calendar view of upcoming college seminars",
+  title: "Seminar Pipeline Dashboard",
+  description: "Calendar and pipeline dashboard for college seminars, prospects, and future intake",
 };
 
 export default function RootLayout({
