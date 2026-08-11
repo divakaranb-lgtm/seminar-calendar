@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Seminar Pipeline Dashboard
 
-## Getting Started
+Live at: **https://seminar-calendar-azure.vercel.app**
 
-First, run the development server:
+A calendar + pipeline dashboard for college seminars, built on top of two live Google Sheets:
+
+- The **seminar sheet** — college, date/status, stream, student count, BDM, speaker, branch.
+- The **calling sheet** — one row per student called after a completed session, used to derive Prospects and Future Intake.
+
+Both are refetched fresh on every page load and on "Refresh" — no server, no database, no build step needed to reflect a sheet edit (though Google's own "publish to web" caching can add up to ~5 minutes of lag on the seminar sheet).
+
+## What's on the page
+
+- **Dashboard cards** — Sessions Done, In Pipeline (Finalised), In Pipeline (Not Confirmed), and a compact Postponed row. Each expands into a quick-view table of the matching seminars, sorted by date.
+- **Monthly calendar** — color-coded by stream, filled dots for confirmed dates, hollow rings for estimated ones, a slashed dot for postponed sessions. Click a day for full details.
+- **BDM breakdown** — sessions, students, prospects, and future intake per BDM.
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploying
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx vercel deploy --prod
+```
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The GitHub repo is connected to the Vercel project, so a push to `main` should also trigger a deployment automatically.
