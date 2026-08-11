@@ -68,11 +68,6 @@ export default function SeminarCalendarApp() {
 
   const scheduled = useMemo(() => seminars.filter((s) => s.date !== null), [seminars]);
   const unscheduled = useMemo(() => seminars.filter((s) => s.date === null), [seminars]);
-  const explicitCount = useMemo(
-    () => scheduled.filter((s) => s.dateSource === "explicit").length,
-    [scheduled]
-  );
-  const estimatedCount = scheduled.length - explicitCount;
 
   const seminarsByDay = useMemo(() => {
     const map = new Map<string, Seminar[]>();
@@ -111,11 +106,7 @@ export default function SeminarCalendarApp() {
           ) : error ? (
             <span className="text-red-600">{error}</span>
           ) : (
-            <span>
-              {explicitCount} confirmed date · {estimatedCount} estimated date ·{" "}
-              {unscheduled.length} pending a date
-              {lastUpdated && <> · updated {format(lastUpdated, "h:mm a")}</>}
-            </span>
+            lastUpdated && <span>Updated {format(lastUpdated, "h:mm a")}</span>
           )}
           <button
             type="button"
