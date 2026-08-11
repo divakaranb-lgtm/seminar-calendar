@@ -5,6 +5,7 @@ import { format, isSameDay } from "date-fns";
 import { fetchSeminars } from "@/lib/fetchSeminars";
 import { fetchCallingRecords } from "@/lib/fetchCallingSheet";
 import { enrichWithCallingStats } from "@/lib/matchCalling";
+import { sortByStatusPriority } from "@/lib/funnel";
 import type { Seminar } from "@/lib/types";
 import MonthCalendar from "./MonthCalendar";
 import DayPanel from "./DayPanel";
@@ -12,6 +13,7 @@ import UnscheduledList from "./UnscheduledList";
 import StreamLegend from "./StreamLegend";
 import SummaryDashboard from "./SummaryDashboard";
 import BdmBreakdown from "./BdmBreakdown";
+import QuickStats from "./QuickStats";
 
 /**
  * The calling sheet is a secondary, non-critical data source (Prospects /
@@ -77,6 +79,9 @@ export default function SeminarCalendarApp() {
       existing.push(seminar);
       map.set(key, existing);
     }
+    for (const [key, group] of map) {
+      map.set(key, sortByStatusPriority(group));
+    }
     return map;
   }, [scheduled]);
 
@@ -91,20 +96,20 @@ export default function SeminarCalendarApp() {
 
   const selectedDaySeminars = useMemo(() => {
     if (!selectedDate) return [];
-    return scheduled.filter((s) => isSameDay(s.date as Date, selectedDate));
+    return sortByStatusPriority(scheduled.filter((s) => isSameDay(s.date as Date, selectedDate)));
   }, [scheduled, selectedDate]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:py-10">
       <header className="mb-6 flex flex-col gap-1 sm:mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-50 sm:text-3xl">
           Seminar Pipeline Dashboard
         </h1>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-zinc-400">
           {loading ? (
             <span>Loading latest seminar data…</span>
           ) : error ? (
-            <span className="text-red-600">{error}</span>
+            <span className="text-red-600 dark:text-red-400">{error}</span>
           ) : (
             lastUpdated && <span>Updated {format(lastUpdated, "h:mm a")}</span>
           )}
@@ -112,7 +117,7 @@ export default function SeminarCalendarApp() {
             type="button"
             onClick={load}
             disabled={loading}
-            className="ml-auto rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
+            className="ml-auto rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             {loading ? "Refreshing…" : "Refresh"}
           </button>
@@ -120,10 +125,12 @@ export default function SeminarCalendarApp() {
       </header>
 
       {error && !loading && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
           Couldn&apos;t load seminar data. {error}
         </div>
       )}
+
+      <QuickStats seminars={seminars} />
 
       <SummaryDashboard seminars={seminars} />
 

@@ -38,16 +38,16 @@ export default function MonthCalendar({
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-zinc-50">
           {format(month, "MMMM yyyy")}
         </h2>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => onMonthChange(subMonths(month, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
             aria-label="Previous month"
           >
             ‹
@@ -55,14 +55,14 @@ export default function MonthCalendar({
           <button
             type="button"
             onClick={() => onMonthChange(new Date())}
-            className="rounded-lg px-2.5 py-1 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            className="rounded-lg px-2.5 py-1 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
           >
             Today
           </button>
           <button
             type="button"
             onClick={() => onMonthChange(addMonths(month, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
             aria-label="Next month"
           >
             ›
@@ -70,7 +70,7 @@ export default function MonthCalendar({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-400 sm:text-sm">
+      <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-400 sm:text-sm dark:text-zinc-500">
         {WEEKDAY_LABELS.map((label) => (
           <div key={label} className="py-1.5">
             {label}
@@ -94,17 +94,17 @@ export default function MonthCalendar({
               disabled={seminars.length === 0}
               className={[
                 "flex aspect-square flex-col items-center justify-start rounded-xl border p-1 text-xs transition sm:p-1.5 sm:text-sm",
-                inMonth ? "text-slate-900" : "text-slate-300",
+                inMonth ? "text-slate-900 dark:text-zinc-100" : "text-slate-300 dark:text-zinc-700",
                 selected
-                  ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
-                  : "border-transparent hover:bg-slate-50",
+                  ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500 dark:border-blue-400 dark:bg-blue-950/50 dark:ring-blue-400"
+                  : "border-transparent hover:bg-slate-50 dark:hover:bg-zinc-800",
                 seminars.length === 0 ? "cursor-default" : "cursor-pointer",
               ].join(" ")}
             >
               <span
                 className={[
                   "flex h-6 w-6 items-center justify-center rounded-full sm:h-7 sm:w-7",
-                  today ? "bg-slate-900 font-semibold text-white" : "",
+                  today ? "bg-slate-900 font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900" : "",
                 ].join(" ")}
               >
                 {format(day, "d")}
@@ -149,7 +149,7 @@ export default function MonthCalendar({
                     );
                   })}
                   {seminars.length > 1 && (
-                    <span className="ml-0.5 hidden text-[10px] font-medium text-slate-400 sm:inline">
+                    <span className="ml-0.5 hidden text-[10px] font-medium text-slate-400 dark:text-zinc-500 sm:inline">
                       {seminars.length}
                     </span>
                   )}

@@ -12,7 +12,8 @@ type CardConfig = {
   title: string;
   subtitle: string;
   studentsLabel: string;
-  accent: string; // tailwind classes for the icon dot + count pill
+  dotClass: string;
+  pillClass: string;
   ring: string; // tailwind border color
   muted?: boolean;
 };
@@ -23,24 +24,27 @@ const CARDS: CardConfig[] = [
     title: "Sessions Done",
     subtitle: "Seminars that have taken place",
     studentsLabel: "Students addressed",
-    accent: "bg-green-500 text-green-700 bg-green-50",
-    ring: "border-green-100",
+    dotClass: "bg-green-500",
+    pillClass: "bg-green-50 text-green-700 dark:bg-green-900/40 dark:text-green-300",
+    ring: "border-green-100 dark:border-green-900/50",
   },
   {
     key: "finalised",
     title: "In Pipeline (Finalised)",
     subtitle: "Date confirmed, yet to happen",
     studentsLabel: "To be addressed",
-    accent: "bg-blue-500 text-blue-700 bg-blue-50",
-    ring: "border-blue-100",
+    dotClass: "bg-blue-500",
+    pillClass: "bg-blue-50 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+    ring: "border-blue-100 dark:border-blue-900/50",
   },
   {
     key: "notConfirmed",
     title: "In Pipeline (Not Confirmed)",
     subtitle: "Date not confirmed yet",
     studentsLabel: "To be addressed",
-    accent: "bg-amber-500 text-amber-700 bg-amber-50",
-    ring: "border-amber-100",
+    dotClass: "bg-amber-500",
+    pillClass: "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+    ring: "border-amber-100 dark:border-amber-900/50",
   },
 ];
 
@@ -49,8 +53,9 @@ const POSTPONED_CARD: CardConfig = {
   title: "Postponed",
   subtitle: "Sessions on hold",
   studentsLabel: "To be addressed",
-  accent: "bg-slate-400 text-slate-600 bg-slate-100",
-  ring: "border-slate-200",
+  dotClass: "bg-slate-400 dark:bg-zinc-500",
+  pillClass: "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300",
+  ring: "border-slate-200 dark:border-zinc-800",
   muted: true,
 };
 
@@ -72,10 +77,10 @@ function sortByDateAsc(seminars: Seminar[]): Seminar[] {
 function QuickViewTable({ group, studentsLabel }: { group: Seminar[]; studentsLabel: string }) {
   const sorted = sortByDateAsc(group);
   return (
-    <div className="mt-4 max-h-64 overflow-y-auto border-t border-slate-100 pt-3">
+    <div className="mt-4 max-h-64 overflow-y-auto border-t border-slate-100 pt-3 dark:border-zinc-800">
       <table className="w-full text-left text-xs">
         <thead>
-          <tr className="text-slate-400">
+          <tr className="text-slate-400 dark:text-zinc-500">
             <th className="pb-1.5 font-medium">College</th>
             <th className="pb-1.5 font-medium">Date</th>
             <th className="pb-1.5 pl-2 text-right font-medium">{studentsLabel}</th>
@@ -83,24 +88,24 @@ function QuickViewTable({ group, studentsLabel }: { group: Seminar[]; studentsLa
             <th className="pb-1.5 pl-2 text-right font-medium">Future Intake</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-50">
+        <tbody className="divide-y divide-slate-50 dark:divide-zinc-800">
           {sorted.map((seminar) => {
             const hasCallingData = seminar.callingMatchCount > 0;
             return (
               <tr key={seminar.id}>
-                <td className="max-w-[8rem] truncate py-1.5 pr-2 font-medium text-slate-700">
+                <td className="max-w-[8rem] truncate py-1.5 pr-2 font-medium text-slate-700 dark:text-zinc-200">
                   {seminar.collegeName}
                 </td>
-                <td className="whitespace-nowrap py-1.5 pr-2 text-slate-500">
+                <td className="whitespace-nowrap py-1.5 pr-2 text-slate-500 dark:text-zinc-400">
                   {dateLabel(seminar)}
                 </td>
-                <td className="py-1.5 pl-2 text-right text-slate-700">
+                <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
                   {seminar.noOfStudents || "—"}
                 </td>
-                <td className="py-1.5 pl-2 text-right text-slate-700">
+                <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
                   {hasCallingData ? seminar.callingProspects : "—"}
                 </td>
-                <td className="py-1.5 pl-2 text-right text-slate-700">
+                <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
                   {hasCallingData ? seminar.callingFutureIntake : "—"}
                 </td>
               </tr>
@@ -150,13 +155,12 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
           const students = sumField(group, (s) => s.noOfStudents);
           const prospects = sumCallingField(group, (s) => s.callingProspects);
           const futureIntake = sumCallingField(group, (s) => s.callingFutureIntake);
-          const [dotClass, textClass, pillBgClass] = card.accent.split(" ");
           const isOpen = expanded.has(card.key);
 
           return (
             <div
               key={card.key}
-              className={`rounded-2xl border ${card.ring} bg-white p-4 shadow-sm sm:p-5`}
+              className={`rounded-2xl border ${card.ring} bg-white p-4 shadow-sm sm:p-5 dark:bg-zinc-900`}
             >
               <button
                 type="button"
@@ -166,44 +170,44 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
               >
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 rounded-full ${dotClass}`} />
-                    <h3 className="text-sm font-semibold text-slate-900">{card.title}</h3>
+                    <span className={`h-2.5 w-2.5 rounded-full ${card.dotClass}`} />
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-50">
+                      {card.title}
+                    </h3>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${pillBgClass} ${textClass}`}
-                    >
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${card.pillClass}`}>
                       {group.length} {group.length === 1 ? "session" : "sessions"}
                     </span>
                     {group.length > 0 && (
                       <span
-                        className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        className={`text-slate-400 dark:text-zinc-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
                       >
                         ▾
                       </span>
                     )}
                   </div>
                 </div>
-                <p className="mb-4 text-xs text-slate-400">{card.subtitle}</p>
+                <p className="mb-4 text-xs text-slate-400 dark:text-zinc-500">{card.subtitle}</p>
 
                 <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
                   <div>
-                    <p className="text-2xl font-bold text-slate-900 sm:text-3xl">
+                    <p className="text-2xl font-bold text-slate-900 dark:text-zinc-50 sm:text-3xl">
                       {formatStat(students)}
                     </p>
-                    <p className="text-xs text-slate-500">{card.studentsLabel}</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">{card.studentsLabel}</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900 sm:text-3xl">
+                    <p className="text-2xl font-bold text-slate-900 dark:text-zinc-50 sm:text-3xl">
                       {formatStat(prospects)}
                     </p>
-                    <p className="text-xs text-slate-500">Prospects</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">Prospects</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-slate-900 sm:text-3xl">
+                    <p className="text-2xl font-bold text-slate-900 dark:text-zinc-50 sm:text-3xl">
                       {formatStat(futureIntake)}
                     </p>
-                    <p className="text-xs text-slate-500">Future Intake</p>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">Future Intake</p>
                   </div>
                 </div>
               </button>
@@ -217,14 +221,16 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
       </div>
 
       {postponed.length > 0 && (
-        <div className={`mt-3 rounded-xl border ${POSTPONED_CARD.ring} bg-slate-50 px-4 py-2.5`}>
+        <div
+          className={`mt-3 rounded-xl border ${POSTPONED_CARD.ring} bg-slate-50 px-4 py-2.5 dark:bg-zinc-900`}
+        >
           <button
             type="button"
             onClick={() => toggle("postponed")}
-            className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 text-left text-xs text-slate-500"
+            className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 text-left text-xs text-slate-500 dark:text-zinc-400"
           >
-            <span className="flex items-center gap-1.5 font-medium text-slate-600">
-              <span className="h-2 w-2 rounded-full bg-slate-400" />
+            <span className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-zinc-300">
+              <span className="h-2 w-2 rounded-full bg-slate-400 dark:bg-zinc-500" />
               Postponed
             </span>
             <span>
@@ -234,7 +240,7 @@ export default function SummaryDashboard({ seminars }: { seminars: Seminar[] }) 
             <span>{formatStat(postponedProspects)} prospects</span>
             <span>{formatStat(postponedFutureIntake)} future intake</span>
             <span
-              className={`ml-auto text-slate-400 transition-transform ${postponedOpen ? "rotate-180" : ""}`}
+              className={`ml-auto text-slate-400 dark:text-zinc-500 transition-transform ${postponedOpen ? "rotate-180" : ""}`}
             >
               ▾
             </span>
