@@ -5,6 +5,8 @@ import { format, isSameDay } from "date-fns";
 import { fetchSeminars } from "@/lib/fetchSeminars";
 import { fetchCallingRecords } from "@/lib/fetchCallingSheet";
 import { enrichWithCallingStats } from "@/lib/matchCalling";
+import { fetchIeltsData } from "@/lib/fetchIeltsSheet";
+import { computeAllBranchStats, type IeltsBranchStat } from "@/lib/ieltsStats";
 import { sortByStatusPriority } from "@/lib/funnel";
 import type { Seminar } from "@/lib/types";
 import MonthCalendar from "./MonthCalendar";
@@ -16,24 +18,38 @@ import BdmBreakdown from "./BdmBreakdown";
 import QuickStats from "./QuickStats";
 import IeltsMockTestCard from "./IeltsMockTestCard";
 
+type LoadResult = { seminars: Seminar[]; ieltsBranchStats: IeltsBranchStat[] | null };
+
 /**
- * The calling sheet is a secondary, non-critical data source (Prospects /
- * Future Intake only) - if it fails to load, seminars still render with
- * those stats simply unavailable ("—") instead of failing the whole page.
+ * The calling sheet and IELTS sheet are secondary, non-critical data
+ * sources - if either fails to load, the rest of the page still renders
+ * with just those stats unavailable ("—") instead of failing entirely.
  */
-async function loadData(): Promise<Seminar[]> {
+async function loadData(): Promise<LoadResult> {
   const seminars = await fetchSeminars();
+
+  let enrichedSeminars = seminars;
   try {
     const callingRecords = await fetchCallingRecords();
-    return enrichWithCallingStats(seminars, callingRecords);
+    enrichedSeminars = enrichWithCallingStats(seminars, callingRecords);
   } catch (err) {
     console.error("Failed to fetch calling sheet; Prospects/Future Intake will be unavailable.", err);
-    return seminars;
   }
+
+  let ieltsBranchStats: IeltsBranchStat[] | null = null;
+  try {
+    const ieltsData = await fetchIeltsData();
+    ieltsBranchStats = computeAllBranchStats(ieltsData);
+  } catch (err) {
+    console.error("Failed to fetch IELTS mock test sheet.", err);
+  }
+
+  return { seminars: enrichedSeminars, ieltsBranchStats };
 }
 
 export default function SeminarCalendarApp() {
   const [seminars, setSeminars] = useState<Seminar[]>([]);
+  const [ieltsBranchStats, setIeltsBranchStats] = useState<IeltsBranchStat[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -45,7 +61,8 @@ export default function SeminarCalendarApp() {
     setError(null);
     loadData()
       .then((data) => {
-        setSeminars(data);
+        setSeminars(data.seminars);
+        setIeltsBranchStats(data.ieltsBranchStats);
         setLastUpdated(new Date());
       })
       .catch((err) => {
@@ -60,7 +77,8 @@ export default function SeminarCalendarApp() {
     // synchronously and would cause a cascading render on mount).
     loadData()
       .then((data) => {
-        setSeminars(data);
+        setSeminars(data.seminars);
+        setIeltsBranchStats(data.ieltsBranchStats);
         setLastUpdated(new Date());
       })
       .catch((err) => {
@@ -135,7 +153,7 @@ export default function SeminarCalendarApp() {
 
       <SummaryDashboard seminars={seminars} />
 
-      <IeltsMockTestCard />
+      <IeltsMockTestCard branchStats={ieltsBranchStats} />
 
       <div className="space-y-5">
         <MonthCalendar
