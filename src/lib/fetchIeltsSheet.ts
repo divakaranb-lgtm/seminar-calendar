@@ -3,8 +3,18 @@ import { findKey } from "./csvUtils";
 
 const IELTS_SHEET_ID = "1EGSV1abOKp3XXKBOmHs8ZGi8hZ02njc24tv4_aayhwo";
 
-export const IELTS_BRANCHES = ["Yelahanka", "Jayanagar"] as const;
-export type IeltsBranchName = (typeof IELTS_BRANCHES)[number];
+// Display name -> exact tab name in the sheet. Google's gviz endpoint
+// silently falls back to the default tab when `sheet=` doesn't match any
+// tab exactly (no error), so this must match verbatim including case -
+// the actual tabs are "Yelahanka Mock registration" and "Jayanagar Mock
+// Registration", not just the branch name.
+const BRANCH_TABS: Record<string, string> = {
+  Yelahanka: "Yelahanka Mock registration",
+  Jayanagar: "Jayanagar Mock Registration",
+};
+
+export const IELTS_BRANCHES = Object.keys(BRANCH_TABS) as IeltsBranchName[];
+export type IeltsBranchName = "Yelahanka" | "Jayanagar";
 
 export type IeltsRegistration = {
   contactNumber: string;
@@ -12,8 +22,7 @@ export type IeltsRegistration = {
   testTakenIn: "online" | "branch" | null;
 };
 
-function normalizeRow(row: Record<string, string>): IeltsRegistration | null {
-  const contactKey = findKey(row, ["contact"]);
+function normalizeRow(row: Record<string, string>, contactKey: string): IeltsRegistration | null {
   const testTakenKey = findKey(row, ["after registration"]);
   const testTakenInKey = findKey(row, ["taken in"]);
 
@@ -27,12 +36,13 @@ function normalizeRow(row: Record<string, string>): IeltsRegistration | null {
   return { contactNumber, testTaken, testTakenIn };
 }
 
-/** Fetches one branch's sub-sheet by tab name (works without needing to know its gid). */
+/** Fetches one branch's sub-sheet by its exact tab name. */
 async function fetchBranchSheet(branch: IeltsBranchName): Promise<IeltsRegistration[]> {
-  const url = `https://docs.google.com/spreadsheets/d/${IELTS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(branch)}&_ts=${Date.now()}`;
+  const tabName = BRANCH_TABS[branch];
+  const url = `https://docs.google.com/spreadsheets/d/${IELTS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_ts=${Date.now()}`;
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
-    throw new Error(`Failed to fetch IELTS sheet "${branch}" (status ${res.status})`);
+    throw new Error(`Failed to fetch IELTS sheet "${tabName}" (status ${res.status})`);
   }
   const text = await res.text();
 
@@ -41,8 +51,16 @@ async function fetchBranchSheet(branch: IeltsBranchName): Promise<IeltsRegistrat
     skipEmptyLines: true,
   });
 
+  // The two tabs use different phone-column headers ("Contact number" vs
+  // "Student WhatsApp Number"); resolved once per sheet, not per row.
+  const sampleRow = parsed.data[0] ?? {};
+  const contactKey = findKey(sampleRow, ["contact", "whatsapp"]);
+  if (!contactKey) {
+    throw new Error(`Could not find a phone number column in IELTS sheet "${tabName}"`);
+  }
+
   return parsed.data
-    .map(normalizeRow)
+    .map((row) => normalizeRow(row, contactKey))
     .filter((r): r is IeltsRegistration => r !== null);
 }
 
