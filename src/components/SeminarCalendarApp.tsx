@@ -14,6 +14,7 @@ import StreamLegend from "./StreamLegend";
 import SummaryDashboard from "./SummaryDashboard";
 import BdmBreakdown from "./BdmBreakdown";
 import QuickStats from "./QuickStats";
+import IeltsMockTestCard from "./IeltsMockTestCard";
 
 /**
  * The calling sheet is a secondary, non-critical data source (Prospects /
@@ -133,6 +134,8 @@ export default function SeminarCalendarApp() {
       <QuickStats seminars={seminars} />
 
       <SummaryDashboard seminars={seminars} />
+
+      <IeltsMockTestCard />
 
       <div className="space-y-5">
         <MonthCalendar
