@@ -3,6 +3,7 @@ import type { IeltsRegistration, IeltsSheetData } from "./fetchIeltsSheet";
 export type IeltsBranchStat = {
   branch: string;
   totalRegistrations: number;
+  ca: number;
   totalTestTaken: number;
   online: number;
   inBranch: number;
@@ -27,6 +28,7 @@ function pct(part: number, whole: number): number | null {
  */
 export function computeBranchStat(branch: string, registrations: IeltsRegistration[]): IeltsBranchStat {
   const totalRegistrations = new Set(registrations.map((r) => r.contactNumber)).size;
+  const ca = new Set(registrations.filter((r) => r.caAssigned).map((r) => r.contactNumber)).size;
 
   const taken = registrations.filter((r) => r.testTaken);
   const totalTestTaken = new Set(taken.map((r) => r.contactNumber)).size;
@@ -37,6 +39,7 @@ export function computeBranchStat(branch: string, registrations: IeltsRegistrati
   return {
     branch,
     totalRegistrations,
+    ca,
     totalTestTaken,
     online,
     inBranch,
@@ -57,6 +60,7 @@ export function computeAllBranchStats(data: IeltsSheetData): IeltsBranchStat[] {
  */
 export function computeOverallStat(branchStats: IeltsBranchStat[]): IeltsBranchStat {
   const totalRegistrations = branchStats.reduce((sum, b) => sum + b.totalRegistrations, 0);
+  const ca = branchStats.reduce((sum, b) => sum + b.ca, 0);
   const totalTestTaken = branchStats.reduce((sum, b) => sum + b.totalTestTaken, 0);
   const online = branchStats.reduce((sum, b) => sum + b.online, 0);
   const inBranch = branchStats.reduce((sum, b) => sum + b.inBranch, 0);
@@ -64,6 +68,7 @@ export function computeOverallStat(branchStats: IeltsBranchStat[]): IeltsBranchS
   return {
     branch: "All branches",
     totalRegistrations,
+    ca,
     totalTestTaken,
     online,
     inBranch,

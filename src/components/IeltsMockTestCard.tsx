@@ -22,13 +22,24 @@ function fmtCountAndPct(count: number | null, pct: number | null): string {
   return pct === null ? count.toLocaleString() : `${count.toLocaleString()} (${pct}%)`;
 }
 
+type Row = {
+  branch: string;
+  totalRegistrations: number | null;
+  ca: number | null;
+  totalTestTaken: number | null;
+  onlinePct: number | null;
+  inBranchPct: number | null;
+};
+
 export default function IeltsMockTestCard({ branchStats }: Props) {
   const [open, setOpen] = useState(false);
 
-  const rows: { branch: string; totalRegistrations: number | null; totalTestTaken: number | null; onlinePct: number | null; inBranchPct: number | null }[] =
-    branchStats ?? IELTS_BRANCHES.map((branch) => ({
+  const rows: Row[] =
+    branchStats ??
+    IELTS_BRANCHES.map((branch) => ({
       branch,
       totalRegistrations: null,
+      ca: null,
       totalTestTaken: null,
       onlinePct: null,
       inBranchPct: null,
@@ -65,6 +76,12 @@ export default function IeltsMockTestCard({ branchStats }: Props) {
           </div>
           <div>
             <p className="text-2xl font-bold text-slate-900 dark:text-zinc-50 sm:text-3xl">
+              {fmtNum(overall?.ca ?? null)}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-zinc-400">CA</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-900 dark:text-zinc-50 sm:text-3xl">
               {fmtCountAndPct(overall?.totalTestTaken ?? null, overall?.testTakenPct ?? null)}
             </p>
             <p className="text-xs text-slate-500 dark:text-zinc-400">Total Test Taken</p>
@@ -91,6 +108,7 @@ export default function IeltsMockTestCard({ branchStats }: Props) {
               <tr className="text-slate-400 dark:text-zinc-500">
                 <th className="pb-1.5 font-medium">Branch</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">Total Regs</th>
+                <th className="pb-1.5 pl-2 text-right font-medium">CA</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">Total Test Taken</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">Online %</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">In Branch %</th>
@@ -104,6 +122,9 @@ export default function IeltsMockTestCard({ branchStats }: Props) {
                   </td>
                   <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
                     {fmtNum(b.totalRegistrations)}
+                  </td>
+                  <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
+                    {fmtNum(b.ca)}
                   </td>
                   <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
                     {fmtNum(b.totalTestTaken)}

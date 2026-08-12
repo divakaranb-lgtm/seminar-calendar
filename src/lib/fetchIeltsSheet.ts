@@ -18,22 +18,24 @@ export type IeltsBranchName = "Yelahanka" | "Jayanagar";
 
 export type IeltsRegistration = {
   contactNumber: string;
+  caAssigned: boolean;
   testTaken: boolean;
   testTakenIn: "online" | "branch" | null;
 };
 
-function normalizeRow(row: Record<string, string>, contactKey: string): IeltsRegistration | null {
+function normalizeRow(row: Record<string, string>, contactKey: string, caKey: string): IeltsRegistration | null {
   const testTakenKey = findKey(row, ["after registration"]);
   const testTakenInKey = findKey(row, ["taken in"]);
 
   const contactNumber = (row[contactKey] || "").trim();
   if (!contactNumber) return null;
 
+  const caAssigned = (row[caKey] || "").trim().length > 0;
   const testTaken = (row[testTakenKey] || "").trim().toUpperCase() === "TRUE";
   const testTakenInRaw = (row[testTakenInKey] || "").trim().toLowerCase();
   const testTakenIn = testTakenInRaw === "online" ? "online" : testTakenInRaw === "branch" ? "branch" : null;
 
-  return { contactNumber, testTaken, testTakenIn };
+  return { contactNumber, caAssigned, testTaken, testTakenIn };
 }
 
 /** Fetches one branch's sub-sheet by its exact tab name. */
@@ -58,9 +60,10 @@ async function fetchBranchSheet(branch: IeltsBranchName): Promise<IeltsRegistrat
   if (!contactKey) {
     throw new Error(`Could not find a phone number column in IELTS sheet "${tabName}"`);
   }
+  const caKey = findKey(sampleRow, ["ca"]);
 
   return parsed.data
-    .map((row) => normalizeRow(row, contactKey))
+    .map((row) => normalizeRow(row, contactKey, caKey))
     .filter((r): r is IeltsRegistration => r !== null);
 }
 
