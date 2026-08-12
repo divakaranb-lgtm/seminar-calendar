@@ -26,6 +26,7 @@ type Row = {
   branch: string;
   totalRegistrations: number | null;
   ca: number | null;
+  caPct: number | null;
   totalTestTaken: number | null;
   onlinePct: number | null;
   inBranchPct: number | null;
@@ -40,6 +41,7 @@ export default function IeltsMockTestCard({ branchStats }: Props) {
       branch,
       totalRegistrations: null,
       ca: null,
+      caPct: null,
       totalTestTaken: null,
       onlinePct: null,
       inBranchPct: null,
@@ -109,6 +111,7 @@ export default function IeltsMockTestCard({ branchStats }: Props) {
                 <th className="pb-1.5 font-medium">Branch</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">Total Regs</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">CA</th>
+                <th className="pb-1.5 pl-2 text-right font-medium">CA %</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">Total Test Taken</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">Online %</th>
                 <th className="pb-1.5 pl-2 text-right font-medium">In Branch %</th>
@@ -125,6 +128,9 @@ export default function IeltsMockTestCard({ branchStats }: Props) {
                   </td>
                   <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
                     {fmtNum(b.ca)}
+                  </td>
+                  <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
+                    {fmtPct(b.caPct)}
                   </td>
                   <td className="py-1.5 pl-2 text-right text-slate-700 dark:text-zinc-200">
                     {fmtNum(b.totalTestTaken)}

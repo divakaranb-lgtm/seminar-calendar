@@ -7,6 +7,7 @@ export type IeltsBranchStat = {
   totalTestTaken: number;
   online: number;
   inBranch: number;
+  caPct: number | null;
   testTakenPct: number | null;
   onlinePct: number | null;
   inBranchPct: number | null;
@@ -43,6 +44,7 @@ export function computeBranchStat(branch: string, registrations: IeltsRegistrati
     totalTestTaken,
     online,
     inBranch,
+    caPct: pct(ca, totalRegistrations),
     testTakenPct: pct(totalTestTaken, totalRegistrations),
     onlinePct: pct(online, totalTestTaken),
     inBranchPct: pct(inBranch, totalTestTaken),
@@ -72,6 +74,7 @@ export function computeOverallStat(branchStats: IeltsBranchStat[]): IeltsBranchS
     totalTestTaken,
     online,
     inBranch,
+    caPct: pct(ca, totalRegistrations),
     testTakenPct: pct(totalTestTaken, totalRegistrations),
     onlinePct: pct(online, totalTestTaken),
     inBranchPct: pct(inBranch, totalTestTaken),
