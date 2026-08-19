@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, isSameDay } from "date-fns";
 import { fetchSeminars } from "@/lib/fetchSeminars";
-import { fetchCallingRecords } from "@/lib/fetchCallingSheet";
+import { fetchCallingRecords, type CallingRecord } from "@/lib/fetchCallingSheet";
+import { fetchYelahankaCallingRecords } from "@/lib/fetchYelahankaCallingSheet";
 import { enrichWithCallingStats } from "@/lib/matchCalling";
 import { fetchIeltsData } from "@/lib/fetchIeltsSheet";
 import { computeAllBranchStats, type IeltsBranchStat } from "@/lib/ieltsStats";
@@ -24,17 +25,31 @@ type LoadResult = { seminars: Seminar[]; ieltsBranchStats: IeltsBranchStat[] | n
  * The calling sheet and IELTS sheet are secondary, non-critical data
  * sources - if either fails to load, the rest of the page still renders
  * with just those stats unavailable ("—") instead of failing entirely.
+ * The two calling-record sources (the shared sheet, and the Yelahanka BDM's
+ * personal Claret/Sambhram tabs) are fetched independently so one failing
+ * doesn't take out the other's stats too.
  */
 async function loadData(): Promise<LoadResult> {
   const seminars = await fetchSeminars();
 
-  let enrichedSeminars = seminars;
-  try {
-    const callingRecords = await fetchCallingRecords();
-    enrichedSeminars = enrichWithCallingStats(seminars, callingRecords);
-  } catch (err) {
-    console.error("Failed to fetch calling sheet; Prospects/Future Intake will be unavailable.", err);
+  const [mainCalling, yelahankaCalling] = await Promise.allSettled([
+    fetchCallingRecords(),
+    fetchYelahankaCallingRecords(),
+  ]);
+
+  const callingRecords: CallingRecord[] = [];
+  if (mainCalling.status === "fulfilled") {
+    callingRecords.push(...mainCalling.value);
+  } else {
+    console.error("Failed to fetch calling sheet; Prospects/Future Intake will be unavailable.", mainCalling.reason);
   }
+  if (yelahankaCalling.status === "fulfilled") {
+    callingRecords.push(...yelahankaCalling.value);
+  } else {
+    console.error("Failed to fetch Yelahanka calling sheet (Claret/Sambhram).", yelahankaCalling.reason);
+  }
+
+  const enrichedSeminars = enrichWithCallingStats(seminars, callingRecords);
 
   let ieltsBranchStats: IeltsBranchStat[] | null = null;
   try {
