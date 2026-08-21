@@ -9,6 +9,7 @@ import { enrichWithCallingStats } from "@/lib/matchCalling";
 import { fetchIeltsData } from "@/lib/fetchIeltsSheet";
 import { computeAllBranchStats, type IeltsBranchStat } from "@/lib/ieltsStats";
 import { sortByStatusPriority } from "@/lib/funnel";
+import { scheduleDailyRefreshes } from "@/lib/scheduleDailyRefreshes";
 import type { Seminar } from "@/lib/types";
 import MonthCalendar from "./MonthCalendar";
 import DayPanel from "./DayPanel";
@@ -100,6 +101,13 @@ export default function SeminarCalendarApp() {
         setError(err instanceof Error ? err.message : "Something went wrong");
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    // load() only closes over stable setState setters and the module-level
+    // loadData() - nothing that changes across renders - so it's safe to
+    // schedule once on mount rather than re-subscribing every render.
+    return scheduleDailyRefreshes(load);
   }, []);
 
   const scheduled = useMemo(() => seminars.filter((s) => s.date !== null), [seminars]);
